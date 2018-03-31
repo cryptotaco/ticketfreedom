@@ -18,7 +18,7 @@ contract EventFactory {
 
 	event NewEventCreated(address creator, string name, uint eventDate, string location, uint numTickets, uint faceValue);
 	event TicketPurchased(address buyer, uint ticketid, string name, uint eventid);
-	event CreatorIds(uint[] ids);
+	event CreatorIds(uint[] ids, address creator, uint totalEvents);
 	function EventFactory() public {
 	}
 
@@ -29,7 +29,7 @@ contract EventFactory {
 		creatorToEventIds[msg.sender].push(eventId);
 		
 		NewEventCreated(msg.sender, _name, _eventDate, _location, _numTickets, _faceValue);
-		CreatorIds(creatorToEventIds[msg.sender]);
+		CreatorIds(creatorToEventIds[msg.sender], msg.sender, events.length);
 		return eventId;
 	}
 
@@ -38,7 +38,7 @@ contract EventFactory {
 	}
 
 	function getEventForId(uint _eventId) public view returns ( string name, string location, uint256 eventDate, address tokenAddress ) {
-		Event memory ievent = events[_eventId];
+		Event memory ievent = events[_eventId-1];
 		return ( ievent.name, ievent.location, ievent.event_date, ievent.tickets_address);
 	}
 
