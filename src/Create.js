@@ -41,10 +41,11 @@ class Create extends Component {
         console.log(result);
         var l = result.logs[0].args;
         var rows = this.state.events;
+
         rows.push({
-            name : l.name,
-            location: l.location,
-            date: new Date(l.eventDate.c[0]).toISOString()        
+            name : l._name,
+            location: l._location,
+            date: new Date(l._eventDate.c[0]).toISOString()        
         });
         this.setState({
             events: rows
@@ -141,7 +142,8 @@ class Create extends Component {
             return {
                 name : r[0],
                 location: r[1],                
-                date: new Date(r[2].c[0]).toISOString()
+                date: new Date(r[2].c[0]).toISOString(),
+                ticketAddress : r[3]
             };
         }) })
       })

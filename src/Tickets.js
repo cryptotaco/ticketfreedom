@@ -3,9 +3,9 @@ import React, { Component } from 'react'
 import EventFactory from '../build/contracts/EventFactory.json'
 import TicketFactory from '../build/contracts/TicketFactory.json'
 import getWeb3 from './utils/getWeb3'
+var web3 = require('web3')
 
-
-class Create extends Component {
+class Tickets extends Component {
   constructor(props) {
     super(props)
 
@@ -43,7 +43,7 @@ class Create extends Component {
       })
 
       // Instantiate contract once web3 provided.
-      // this.instantiateContract()
+      this.instantiateContract()
     })
     .catch(() => {
       console.log('Error finding web3.')
@@ -100,11 +100,11 @@ class Create extends Component {
         eventFactoryInstance = instance
 
         // Stores a given value, 5 by default.
-        return eventFactoryInstance.getEventsWithAvailableTickets.call({from: accounts[0]});
+         return eventFactoryInstance.getEventsWithAvailableTickets.call({from: this.state.account});
       }).then((result) => {
         // result = [ uint[] ids, uint16[] price ] 
         var promises = [];
-        for(var i = 0; i < ids.length; ++i )
+        for(var i = 0; i < result[0].length; ++i )
         {
           eventIdsToEvents[result[0][i]] = { "event" : {}, "lowestPrice" : result[1][i]};
           promises.push(eventFactoryInstance.getEventForId(result[0][i]));
@@ -113,7 +113,7 @@ class Create extends Component {
       }).then((events) => {
         // Update state with the result.
         var eventsWithTickets = [];
-        events.forEach((e) => {
+        events.forEach((r) => {
           var id = r[4];
           if(eventIdsToEvents[id]) {
             eventsWithTickets.push({
@@ -135,18 +135,23 @@ class Create extends Component {
         });
         return Promise.all(promises);
       }).then((events) => {
-        eventsIHaveTicketsTo.append({
-              id: id,
-              eventName: r[0],
-              eventLocation: r[1],
-              eventDate: new Date(r[2].c[0]).toISOString(),
-              ticketAddress: r[3],
+
+        events.forEach((r) => {
+          var id = r[4];
+          eventsIHaveTicketsTo.append({
+                id: id,
+                eventName: r[0],
+                eventLocation: r[1],
+                eventDate: new Date(r[2].c[0]).toISOString(),
+                ticketAddress: r[3],
+          });
         });
+         
 
       }).then(() => {
         return this.setState({ 
           ticketFactoryContract: ticketFactory, 
-          eventFactoryInstance: eventFactoryInstance
+          eventFactoryInstance: eventFactoryInstance,
           account: accounts[0],
           availableTickets: eventsWithTickets,
           ownedTickets: eventsIHaveTicketsTo
@@ -154,8 +159,7 @@ class Create extends Component {
       });
 
       });
-    })
-    */
+    
   }
 
   makeCallback(action,eventId){
@@ -229,4 +233,4 @@ class Create extends Component {
   } 
 }
 
-export default Create
+export default Tickets
