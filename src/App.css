@@ -90,3 +90,8 @@ code {
 .pure-table tr:hover {
   color: #0078e7;
 }
+
+input {  
+  border-radius: 0px !important;
+  box-shadow: 0 0 0px #ffffff !important;
+}

@@ -49,5 +49,6 @@ contract EventFactory {
 		//tf.buyTicket(msg.sender, ticketId);
 		TicketPurchased(msg.sender, ticketId, ievent.name, _eventId);
 	}
+
 }
 
