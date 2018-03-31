@@ -1,5 +1,4 @@
 import React, { Component } from 'react'
-import SimpleStorageContract from '../build/contracts/SimpleStorage.json'
 import getWeb3 from './utils/getWeb3'
 
 
@@ -10,13 +9,24 @@ class Create extends Component {
     this.state = {
       storageValue: 0,
       web3: null,
-      tickets: [
-        { title:'Making your first DApp with MetaMask & Truffle',},
-        { title:'Making your first DApp with MetaMask & Truffle',},
-        { title:'Making your first DApp with MetaMask & Truffle',},
-        { title:'Making your first DApp with MetaMask & Truffle',},
-      ]
+      availableTickets:this.makeFake(),
+      ownedTickets: this.makeFake()
     }
+  }
+
+  makeFake(){
+    var tickets=[];
+    for(var i=0;i<5;i++){
+      tickets.push({
+        eventName : "event "+i,
+        eventLocation: "New York",
+        eventTicketCount:10,
+        eventFaceValue: 100,
+        eventDate : new Date().getTime(),
+        id:i, 
+      });
+    }
+    return tickets;
   }
 
   componentWillMount() {
@@ -30,7 +40,7 @@ class Create extends Component {
       })
 
       // Instantiate contract once web3 provided.
-      this.instantiateContract()
+      // this.instantiateContract()
     })
     .catch(() => {
       console.log('Error finding web3.')
@@ -44,9 +54,9 @@ class Create extends Component {
      * Normally these functions would be called in the context of a
      * state management library, but for convenience I've placed them here.
      */
-
+/*
     const contract = require('truffle-contract')
-    const simpleStorage = contract(SimpleStorageContract)
+    //const simpleStorage = contract(SimpleStorageContract)
     simpleStorage.setProvider(this.state.web3.currentProvider)
 
     // Declaring this for later so we can chain functions on SimpleStorage.
@@ -67,33 +77,75 @@ class Create extends Component {
         return this.setState({ storageValue: result.c[0] })
       })
     })
+    */
   }
 
+  makeCallback(action,eventId){
+    var that=this;
+    return ()=>{
+      that.handleAction(action,eventId);
+    }
+  }
+  handleAction(action, eventId){
+    console.log(action, eventId);
+  }
+
+  renderTickets(tickets, action){
+    var rows=[];
+    for (var i = 0; i < tickets.length; i++) {
+      rows.push(
+        <tr key={i}>            
+          <td>{tickets[i].eventName}</td>
+          <td>{tickets[i].eventLocation}</td>
+          <td>{new Date(tickets[i].eventDate).toISOString().substr(0,10)}</td>
+          <td>
+            <button className="pure-button pure-button-primary"
+            onClick = {this.makeCallback(action,tickets[i].id)}
+            >{action}</button>
+          </td>
+        </tr>          
+      );
+    }
+    return rows;  
+  }
+
+
   render() {
-    var rows = [];
-    for (var i = 0; i < this.state.tickets.length; i++) {
-        rows.push(
-          <tr key={i}>            
-            <td>{this.state.tickets[i].title}</td>
-            <td>
-              <button className="pure-button pure-button-primary">Buy</button>
-            </td>
-          </tr>          
-        );
-    }    
+    var availableRows = this.renderTickets(this.state.availableTickets,'Buy');
+    var ownedRows = this.renderTickets(this.state.ownedTickets,'Sell');
+  
     return (
       <create>
+        <h3>My Tickets</h3>
         <table className="pure-table stretch-table">
           <thead>
-            <tr>              
-              <th>My Tickets</th>
-              <th>&nbsp;</th>
-            </tr>
+            <tr>                          
+            <th>Event</th>
+            <th>Location</th>
+            <th>Date</th>
+            <th>&nbsp;</th>
+        </tr>
           </thead>              
           <tbody>
-          {rows}
+          {ownedRows}
           </tbody>
-        </table>          
+        </table>
+        <p>&nbsp;</p>
+        <h3>Available Tickets</h3>
+        <table className="pure-table stretch-table">
+          <thead>
+            <tr>                          
+            <th>Event</th>
+            <th>Location</th>
+            <th>Date</th>
+            <th>&nbsp;</th>
+        </tr>
+          </thead>              
+          <tbody>
+          {availableRows}
+          </tbody>
+        </table>           
+
       </create>
     );
   } 
