@@ -51,14 +51,29 @@ contract TicketFactory is ERC721Basic {
         }
         return (minPrice, id);  
     }
+
     //NOOPS
-    function approve(address _to, uint256 _tokenId) public;
-    function getApproved(uint256 _tokenId) public view returns (address _operator);
-    function setApprovalForAll(address _operator, bool _approved) public;
-    function isApprovedForAll(address _owner, address _operator) public view returns (bool);
-    function safeTransferFrom(address _from, address _to, uint256 _tokenId) public;  
-    function safeTransferFrom(address _from, address _to, uint256 _tokenId, bytes _data) public;
-    function transferFrom(address _from, address _to, uint256 _ticketId) public;
+    function approve(address _to, uint256 _tokenId) public {
+
+    }
+    function getApproved(uint256 _tokenId) public view returns (address _operator) {
+
+    }
+    function setApprovalForAll(address _operator, bool _approved) public {
+
+    }
+    function isApprovedForAll(address _owner, address _operator) public view returns (bool) {
+
+    }
+    function safeTransferFrom(address _from, address _to, uint256 _tokenId) public {
+
+    }  
+    function safeTransferFrom(address _from, address _to, uint256 _tokenId, bytes _data) public {
+
+    }
+    function transferFrom(address _from, address _to, uint256 _ticketId) public {
+        
+    }
     //NOOPS
     
     function buyTicket(uint _ticketId) external payable {
