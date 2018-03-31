@@ -80,31 +80,44 @@ class Create extends Component {
     */
   }
 
-  makeCallback(action,eventId){
+  makeCallback(action,ticket){
     var that=this;
     return ()=>{
-      that.handleAction(action,eventId);
+      that.handleAction(action,ticket);
     }
   }
-  handleAction(action, eventId){
-    console.log(action, eventId);
+  handleAction(action, ticket){
+    console.log(action, JSON.stringify(ticket));
+  }
+
+  makeRow(action, ticket){
+    var that = this;
+    return (
+      <tr key={ticket.id}>            
+        <td>{ticket.eventName}</td>
+        <td>{ticket.eventLocation}</td>
+        <td>{new Date(ticket.eventDate).toISOString().substr(0,10)}</td>
+        <td>
+        {action === 'Sell' &&
+          <input onChange={(e)=>{
+            ticket.updatedValue=parseInt(e.target.value,10);
+          }} defaultValue= {ticket.eventFaceValue} type="number"/>
+        }
+        {action === 'Buy' && <span>{ticket.eventFaceValue}</span>}
+        </td>
+        <td>
+          <button className="pure-button pure-button-primary"
+          onClick = { ()=>{ that.handleAction(action,ticket) } }
+          >{action}</button>
+        </td>
+      </tr>          
+    );
   }
 
   renderTickets(tickets, action){
     var rows=[];
     for (var i = 0; i < tickets.length; i++) {
-      rows.push(
-        <tr key={i}>            
-          <td>{tickets[i].eventName}</td>
-          <td>{tickets[i].eventLocation}</td>
-          <td>{new Date(tickets[i].eventDate).toISOString().substr(0,10)}</td>
-          <td>
-            <button className="pure-button pure-button-primary"
-            onClick = {this.makeCallback(action,tickets[i].id)}
-            >{action}</button>
-          </td>
-        </tr>          
-      );
+      rows.push(this.makeRow(action,tickets[i]));
     }
     return rows;  
   }
@@ -123,6 +136,7 @@ class Create extends Component {
             <th>Event</th>
             <th>Location</th>
             <th>Date</th>
+            <th>Price</th>
             <th>&nbsp;</th>
         </tr>
           </thead>              
@@ -138,6 +152,7 @@ class Create extends Component {
             <th>Event</th>
             <th>Location</th>
             <th>Date</th>
+            <th>Price</th>
             <th>&nbsp;</th>
         </tr>
           </thead>              
