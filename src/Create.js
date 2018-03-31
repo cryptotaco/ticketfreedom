@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import SimpleStorageContract from '../build/contracts/SimpleStorage.json'
+import EventFactory from '../build/contracts/EventFactory.json'
 import getWeb3 from './utils/getWeb3'
 
 
@@ -7,10 +7,20 @@ class Create extends Component {
   constructor(props) {
     super(props)
 
+
+
+    this.createEvent = this.createEvent.bind(this);
+    this.handleLocationChange = this.handleLocationChange.bind(this);
+    this.handleNameChange = this.handleNameChange.bind(this);
+    this.handleCountChange = this.handleCountChange.bind(this);
+
     this.state = {
       storageValue: 0,
       web3: null,
-      tickets: [
+      eventName : "",
+      eventLocation: "",
+      eventTicketCount:0,
+      events: [
         { title:'Making your first DApp with MetaMask & Truffle',},
         { title:'Making your first DApp with MetaMask & Truffle',},
         { title:'Making your first DApp with MetaMask & Truffle',},
@@ -18,6 +28,50 @@ class Create extends Component {
       ]
     }
   }
+
+
+  createEvent() {
+    console.log(this.state.eventName);
+    var eventFactoryInstance = this.state.instance;
+    eventFactoryInstance.createNewEvent(
+        this.state.eventName,
+        this.state.eventLocation, 
+        123456,
+        this.state.eventTicketCount,
+        50,
+        { from: this.state.account }
+    ).then((result) => {
+        console.log(result);
+        var l = result.logs[0].args;
+        var rows = this.state.events;
+        rows.push({
+            name : l.name,
+            location: l.location,
+            date: l.eventDate.c[0].toString()
+        });
+        console.log(l);
+        console.log(rows);
+        this.setState({
+            eventName : "",
+            eventLocation: "",
+            eventTicketCount : 0,
+            events: rows
+        })
+    });
+  }
+
+  handleLocationChange(e) {
+    this.setState({ eventLocation: e.target.value });
+  }
+
+  handleNameChange(e) {
+    this.setState({ eventName: e.target.value });
+  }
+
+  handleCountChange(e) {
+    this.setState({ eventTicketCount: parseInt(e.target.value) });
+  }
+
 
   componentWillMount() {
     // Get network provider and web3 instance.
@@ -29,7 +83,7 @@ class Create extends Component {
         web3: results.web3
       })
 
-      // Instantiate contract once web3 provided.
+      // Instantite contract once web3 provided.
       this.instantiateContract()
     })
     .catch(() => {
@@ -46,36 +100,57 @@ class Create extends Component {
      */
 
     const contract = require('truffle-contract')
-    const simpleStorage = contract(SimpleStorageContract)
-    simpleStorage.setProvider(this.state.web3.currentProvider)
+    const eventFactory = contract(EventFactory)
+    eventFactory.setProvider(this.state.web3.currentProvider)
+    var eventFactoryInstance;
 
-    // Declaring this for later so we can chain functions on SimpleStorage.
-    var simpleStorageInstance
 
-    // Get accounts.
     this.state.web3.eth.getAccounts((error, accounts) => {
-      simpleStorage.deployed().then((instance) => {
-        simpleStorageInstance = instance
-
+      eventFactory.deployed().then((instance) => {
+        eventFactoryInstance = instance
+        eventFactoryInstance.NewEventCreated().watch((err, response) => {
+            console.log(response);
+            console.log(err);
+        });
         // Stores a given value, 5 by default.
-        return simpleStorageInstance.set(5, {from: accounts[0]})
+        return eventFactoryInstance.getEventIds.call({from: accounts[0]});
       }).then((result) => {
-        // Get the value from the contract to prove it worked.
-        return simpleStorageInstance.get.call(accounts[0])
-      }).then((result) => {
+        var promises = [];
+        result.forEach((r)=>{
+            var p = eventFactoryInstance.getEventForId(parseInt(r.c[0].toString()));
+            promises.push(p);
+        });
+
+        return Promise.all(promises);
+
+      }).then((results) => {
         // Update state with the result.
-        return this.setState({ storageValue: result.c[0] })
+        console.log(results);
+
+        return this.setState({ 
+            account: accounts[0],
+            instance: eventFactoryInstance,
+            events: results.map((r) => { 
+            return {
+                name : r[0],
+                location: r[1],
+                date: r[2].c[0].toString()
+            };
+        }) })
       })
     })
   }
 
   render() {
     var rows = [];
-    for (var i = 0; i < this.state.tickets.length; i++) {
+
+    for (var i = 0; i < this.state.events.length; i++) {
         rows.push(
           <tr key={i}>
             <td>{i}</td>
-            <td>{this.state.tickets[i].title}</td>
+            <td>{this.state.events[i].name}</td>
+            <td>{this.state.events[i].location}</td>
+            <td>{this.state.events[i].date}</td>
             <td>
               <button className="pure-button pure-button-primary">Edit</button>
             </td>
@@ -91,16 +166,20 @@ class Create extends Component {
               <div className="pure-g">
                 <div className="pure-u-3-5">
                   <label data-for="event_name">Event Name</label>
-                  <input id="event_name" className="pure-u-23-24" type="text"/>
+                  <input id="event_name" value={this.state.eventName} onChange={this.handleNameChange}  className="pure-u-23-24" type="text"/>
+                </div>
+                <div className="pure-u-3-5">
+                  <label data-for="event_location">Event Location</label>
+                  <input id="event_location" value={this.state.eventLocation} onChange={this.handleLocationChange} className="pure-u-23-24" type="text"/>
                 </div>
                 <div className="pure-u-1-5">
                   <label data-for="event_name">Count</label>
-                  <input id="event_name" className="pure-u-23-24" type="number"/>
+                  <input id="event_name" value={this.state.eventTicketCount} onChange={this.handleCountChange}  className="pure-u-23-24" type="number"/>
                 </div>
 
                 <div className="pure-u-1-5">
                   <label data-for="submit">&nbsp;</label>
-                  <button id="submit" type="submit" className="pure-button pure-button-primary">Create</button>
+                  <button id="submit" type="button" className="pure-button pure-button-primary" onClick={this.createEvent}>Create</button>
                 </div>
               </div>
             </fieldset>
@@ -111,6 +190,8 @@ class Create extends Component {
               <tr>
                 <th>&nbsp;</th>
                 <th>Event</th>
+                <th>Location</th>
+                <th>Date</th>
                 <th>&nbsp;</th>
               </tr>
             </thead>              

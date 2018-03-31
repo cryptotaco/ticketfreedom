@@ -21,8 +21,8 @@ class App extends Component {
     // Get network provider and web3 instance.
     // See utils/getWeb3 for more info.
 
-    getWeb3
-    .then(results => {
+    getWeb3.then(results => {
+      console.log(results);
       this.setState({
         web3: results.web3
       })
