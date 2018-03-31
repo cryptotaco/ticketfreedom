@@ -73,8 +73,7 @@ class Create extends Component {
     var rows = [];
     for (var i = 0; i < this.state.tickets.length; i++) {
         rows.push(
-          <tr key={i}>
-            <td>{i}</td>
+          <tr key={i}>            
             <td>{this.state.tickets[i].title}</td>
             <td>
               <button className="pure-button pure-button-primary">Edit</button>
@@ -106,11 +105,10 @@ class Create extends Component {
             </fieldset>
           </form>
 
-          <table className="pure-table">
+          <table className="pure-table stretch-table">
             <thead>
-              <tr>
-                <th>&nbsp;</th>
-                <th>Event</th>
+              <tr>                
+                <th>My Events</th>
                 <th>&nbsp;</th>
               </tr>
             </thead>              
