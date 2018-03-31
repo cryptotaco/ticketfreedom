@@ -1,8 +1,11 @@
 import React, { Component } from 'react'
+
+import EventFactory from '../build/contracts/EventFactory.json'
+import TicketFactory from '../build/contracts/TicketFactory.json'
 import getWeb3 from './utils/getWeb3'
+var web3 = require('web3')
 
-
-class Create extends Component {
+class Tickets extends Component {
   constructor(props) {
     super(props)
 
@@ -40,44 +43,123 @@ class Create extends Component {
       })
 
       // Instantiate contract once web3 provided.
-      // this.instantiateContract()
+      this.instantiateContract()
     })
     .catch(() => {
       console.log('Error finding web3.')
     })
   }
 
+  buyTicket(e,eventId, price) {
+    var ticketInstance;
+    this.eventFactoryInstance.getEventForId(eventId).then((ev) => {
+      var ticketAddress = ev[3];
+      this.state.ticketFactoryContract.at(ticketAddress).then((instance) => {
+        ticketInstance = instance;
+        return ticketInstance.lowestAskingPrice({})
+      }).then((results)=>{
+        // results[0] - bool, results[2] - uint16 price, results[3] - uint256 id
+        // buy ticket- ticket id,  msg value set
+        var price = results[1];
+        var ticketId = results[2];
+        ticketInstance.buyTicket(ticketId, { from: this.state.account, value:  web3.utils.toWei( price, 'ether')})
+      });
+    });
+  }
+
+  // sellTicket(e,eventId, sellprice) {
+  //   this.eventFactoryInstance.getEventForId(eventId).then((ev) => {
+  //     var ticketAddress = ev[3];
+  //     this.state.ticketFactoryContract.at(ticketAddress).then((instance) => {
+  //       ticketInstance = instance;
+  //       return ticketInstance.lowestAskingPrice({})
+  //     }).then((results)=>{
+  //       // results[0] - bool, results[2] - uint16 price, results[3] - uint256 id
+  //       // buy ticket- ticket id,  msg value set
+  //       var price = results[1];
+  //       var ticketId = results[2];
+  //       ticketInstance.buyTicket(ticketId, { from: this.state.account, value:  web3.utils.toWei( price, 'ether')})
+  //     });
+  //   });
+  // }
+
   instantiateContract() {
-    /*
-     * SMART CONTRACT EXAMPLE
-     *
-     * Normally these functions would be called in the context of a
-     * state management library, but for convenience I've placed them here.
-     */
-/*
     const contract = require('truffle-contract')
-    //const simpleStorage = contract(SimpleStorageContract)
-    simpleStorage.setProvider(this.state.web3.currentProvider)
+    var eventFactory = contract(EventFactory)
+    var ticketFactory = contract(TicketFactory);
+    eventFactory.setProvider(this.state.web3.currentProvider);
+    ticketFactory.setProvider(this.state.web3.currentProvider);
+    var eventFactoryInstance;
 
-    // Declaring this for later so we can chain functions on SimpleStorage.
-    var simpleStorageInstance
-
+    var eventsWithTickets = [];
+    var eventsIHaveTicketsTo = [];
     // Get accounts.
     this.state.web3.eth.getAccounts((error, accounts) => {
-      simpleStorage.deployed().then((instance) => {
-        simpleStorageInstance = instance
+      var eventIdsToEvents = {}
+      eventFactory.deployed().then((instance) => {
+        eventFactoryInstance = instance
 
         // Stores a given value, 5 by default.
-        return simpleStorageInstance.set(5, {from: accounts[0]})
+         return eventFactoryInstance.getEventsWithAvailableTickets.call({from: this.state.account});
       }).then((result) => {
-        // Get the value from the contract to prove it worked.
-        return simpleStorageInstance.get.call(accounts[0])
-      }).then((result) => {
+        // result = [ uint[] ids, uint16[] price ] 
+        var promises = [];
+        for(var i = 0; i < result[0].length; ++i )
+        {
+          eventIdsToEvents[result[0][i]] = { "event" : {}, "lowestPrice" : result[1][i]};
+          promises.push(eventFactoryInstance.getEventForId(result[0][i]));
+        }
+        return Promise.all(promises);
+      }).then((events) => {
         // Update state with the result.
-        return this.setState({ storageValue: result.c[0] })
-      })
-    })
-    */
+        var eventsWithTickets = [];
+        events.forEach((r) => {
+          var id = r[4];
+          if(eventIdsToEvents[id]) {
+            eventsWithTickets.push({
+              id: id,
+              eventName: r[0],
+              eventLocation: r[1],
+              eventDate: new Date(r[2].c[0]).toISOString(),
+              ticketAddress: r[3],
+              lowestPrice: eventIdsToEvents[id].lowestPrice
+            });
+          }
+        });
+      }).then(()=> {
+        // Get all events for which i currently have tickets 
+        return eventFactoryInstance.getMyEvents.call({from: accounts[0]});
+      }).then((eventsWithTixIds) => {
+        var promises = eventsWithTixIds.map((id) => {
+          return eventFactoryInstance.getEventForId(id, { from: accounts[0]});
+        });
+        return Promise.all(promises);
+      }).then((events) => {
+
+        events.forEach((r) => {
+          var id = r[4];
+          eventsIHaveTicketsTo.append({
+                id: id,
+                eventName: r[0],
+                eventLocation: r[1],
+                eventDate: new Date(r[2].c[0]).toISOString(),
+                ticketAddress: r[3],
+          });
+        });
+         
+
+      }).then(() => {
+        return this.setState({ 
+          ticketFactoryContract: ticketFactory, 
+          eventFactoryInstance: eventFactoryInstance,
+          account: accounts[0],
+          availableTickets: eventsWithTickets,
+          ownedTickets: eventsIHaveTicketsTo
+        });
+      });
+
+      });
+    
   }
 
   makeCallback(action,ticket){
@@ -166,4 +248,4 @@ class Create extends Component {
   } 
 }
 
-export default Create
+export default Tickets

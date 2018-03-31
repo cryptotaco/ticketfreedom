@@ -23,14 +23,14 @@ contract EventFactory {
     
     function EventFactory() public {
     }
-
+ 
     function createNewEvent(string _name, string _location, uint _eventDate, uint _numTickets, uint16 _faceValue) public returns (uint) {
         address ticketsAddress = new TicketFactory(msg.sender, _numTickets, _faceValue);
         uint eventId = events.push(Event(msg.sender, ticketsAddress, _name, _location, _eventDate, true));
         creatorToEventIds[msg.sender].push(eventId);
         
-        emit NewEventCreated(msg.sender, _name, _eventDate, _location, _numTickets, _faceValue);
-        emit CreatorIds(creatorToEventIds[msg.sender]);
+        NewEventCreated(msg.sender, _name, _eventDate, _location, _numTickets, _faceValue);
+        CreatorIds(creatorToEventIds[msg.sender]);
         return eventId;
     }
 
@@ -40,10 +40,11 @@ contract EventFactory {
 
     function getEventForId(uint _eventId) public view returns (string, string, uint256, address , uint) {
         Event memory ievent = events[_eventId];
+        
         return (ievent.name, ievent.location, ievent.event_date, ievent.tickets_address, _eventId);
     }
 
-    function getEventsWithAvailableTickets(uint _eventId) public view returns (uint[], uint[]) {
+    function getEventsWithAvailableTickets() public view returns (uint[], uint[]) {
         uint[] ids;
         uint[] price;
         for (uint i = 0; i < events.length; i++) {
