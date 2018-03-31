@@ -1,5 +1,7 @@
 import React, { Component } from 'react'
+
 import EventFactory from '../build/contracts/EventFactory.json'
+import TicketFactory from '../build/contracts/TicketFactory.json'
 import getWeb3 from './utils/getWeb3'
 
 
@@ -10,13 +12,24 @@ class Create extends Component {
     this.state = {
       storageValue: 0,
       web3: null,
-      tickets: [
-        { title:'Making your first DApp with MetaMask & Truffle',},
-        { title:'Making your first DApp with MetaMask & Truffle',},
-        { title:'Making your first DApp with MetaMask & Truffle',},
-        { title:'Making your first DApp with MetaMask & Truffle',},
-      ]
+      availableTickets:this.makeFake(),
+      ownedTickets: this.makeFake()
     }
+  }
+
+  makeFake(){
+    var tickets=[];
+    for(var i=0;i<5;i++){
+      tickets.push({
+        eventName : "event "+i,
+        eventLocation: "New York",
+        eventTicketCount:10,
+        eventFaceValue: 100,
+        eventDate : new Date().getTime(),
+        id:i, 
+      });
+    }
+    return tickets;
   }
 
   componentWillMount() {
@@ -30,7 +43,7 @@ class Create extends Component {
       })
 
       // Instantiate contract once web3 provided.
-      this.instantiateContract()
+      // this.instantiateContract()
     })
     .catch(() => {
       console.log('Error finding web3.')
@@ -105,9 +118,9 @@ class Create extends Component {
           if(eventIdsToEvents[id]) {
             eventsWithTickets.push({
               id: id,
-              name: r[0],
-              location: r[1],
-              date: new Date(r[2].c[0]).toISOString(),
+              eventName: r[0],
+              eventLocation: r[1],
+              eventDate: new Date(r[2].c[0]).toISOString(),
               ticketAddress: r[3],
               lowestPrice: eventIdsToEvents[id].lowestPrice
             });
@@ -124,9 +137,9 @@ class Create extends Component {
       }).then((events) => {
         eventsIHaveTicketsTo.append({
               id: id,
-              name: r[0],
-              location: r[1],
-              date: new Date(r[2].c[0]).toISOString(),
+              eventName: r[0],
+              eventLocation: r[1],
+              eventDate: new Date(r[2].c[0]).toISOString(),
               ticketAddress: r[3],
         });
 
@@ -135,40 +148,82 @@ class Create extends Component {
           ticketFactoryContract: ticketFactory, 
           eventFactoryInstance: eventFactoryInstance
           account: accounts[0],
-          eventsWithTicketsToBuy: eventsWithTickets,
-          eventsIHaveTicketsTo: eventsIHaveTicketsTo
+          availableTickets: eventsWithTickets,
+          ownedTickets: eventsIHaveTicketsTo
         });
       });
 
       });
     })
+    */
   }
 
+  makeCallback(action,eventId){
+    var that=this;
+    return ()=>{
+      that.handleAction(action,eventId);
+    }
+  }
+  handleAction(action, eventId){
+    console.log(action, eventId);
+  }
+
+  renderTickets(tickets, action){
+    var rows=[];
+    for (var i = 0; i < tickets.length; i++) {
+      rows.push(
+        <tr key={i}>            
+          <td>{tickets[i].eventName}</td>
+          <td>{tickets[i].eventLocation}</td>
+          <td>{new Date(tickets[i].eventDate).toISOString().substr(0,10)}</td>
+          <td>
+            <button className="pure-button pure-button-primary"
+            onClick = {this.makeCallback(action,tickets[i].id)}
+            >{action}</button>
+          </td>
+        </tr>          
+      );
+    }
+    return rows;  
+  }
+
+
   render() {
-    var rows = [];
-    for (var i = 0; i < this.state.tickets.length; i++) {
-        rows.push(
-          <tr key={i}>            
-            <td>{this.state.tickets[i].title}</td>
-            <td>
-              <button className="pure-button pure-button-primary">Buy</button>
-            </td>
-          </tr>          
-        );
-    }    
+    var availableRows = this.renderTickets(this.state.availableTickets,'Buy');
+    var ownedRows = this.renderTickets(this.state.ownedTickets,'Sell');
+  
     return (
       <create>
+        <h3>My Tickets</h3>
         <table className="pure-table stretch-table">
           <thead>
-            <tr>              
-              <th>My Tickets</th>
-              <th>&nbsp;</th>
-            </tr>
+            <tr>                          
+            <th>Event</th>
+            <th>Location</th>
+            <th>Date</th>
+            <th>&nbsp;</th>
+        </tr>
           </thead>              
           <tbody>
-          {rows}
+          {ownedRows}
           </tbody>
-        </table>          
+        </table>
+        <p>&nbsp;</p>
+        <h3>Available Tickets</h3>
+        <table className="pure-table stretch-table">
+          <thead>
+            <tr>                          
+            <th>Event</th>
+            <th>Location</th>
+            <th>Date</th>
+            <th>&nbsp;</th>
+        </tr>
+          </thead>              
+          <tbody>
+          {availableRows}
+          </tbody>
+        </table>           
+
       </create>
     );
   } 

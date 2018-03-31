@@ -40,16 +40,31 @@ contract TicketFactory is ERC721Basic {
         return owner != address(0);
     }
 
-    function lowestAskingPrice() public view returns (uint16, uint256) {
-        uint256 id = 0;
-        uint16 minPrice = ticketIdToTicketOwner[id].askPrice;
-        for (uint ticketId = 1; ticketId < numberOfTickets; ticketId++) {
-            if (ticketIdToTicketOwner[ticketId].askPrice < minPrice) {
-                id = ticketId;
+    function lowestAskingPrice() public view returns(bool, uint16, uint256) {
+        //Returns are there tickets for sale (bool), min price of that ticket (uint16), and the ticket id (uint256)
+        bool isTicketsForSale = false;
+        uint firstTicketForSaleId;
+        uint16 firstTicketForSalePrice;
+        for (uint ticketId = 0; ticketId < numberOfTickets; ticketId++) {
+            if (ticketIdToTicketOwner[ticketId].forSale) {
+                isTicketsForSale = true;
+                firstTicketForSaleId = ticketId;
+                firstTicketForSalePrice = ticketIdToTicketOwner[ticketId].askPrice;
+                break;
+            }
+        }
+        if (!isTicketsForSale) {
+            return (isTicketsForSale, 0, 0);
+        }
+        uint16 minPrice = firstTicketForSalePrice;
+        uint256 minPriceId = firstTicketForSaleId;
+        for (ticketId = firstTicketForSaleId; ticketId < numberOfTickets; ticketId++) {
+            if (ticketIdToTicketOwner[ticketId].forSale && ticketIdToTicketOwner[ticketId].askPrice < minPrice) {
+                minPriceId = ticketId;
                 minPrice = ticketIdToTicketOwner[ticketId].askPrice;
             }
         }
-        return (minPrice, id);  
+        return (isTicketsForSale, minPrice, minPriceId);  
     }
     //NOOPS
     function approve(address _to, uint256 _tokenId) public;
@@ -82,7 +97,7 @@ contract TicketFactory is ERC721Basic {
         for (uint ticketId = 0; ticketId < numberOfTickets; ticketId++) {
             ticketIdToTicketOwner[ticketId] = TicketOwner(venueWalletAddress, startingValue, true);
         }
-    }   
+    }
 }
 
 
