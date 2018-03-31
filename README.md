@@ -14,6 +14,6 @@ Break the chains
 1. Clone repo
 
 # Commands
-truffle compile
-truffle migrate 
-npm run start
+`truffle compile`
+`truffle migrate`
+`npm run start`
