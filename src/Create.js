@@ -6,20 +6,20 @@ import getWeb3 from './utils/getWeb3'
 class Create extends Component {
   constructor(props) {
     super(props)
-
-
-
     this.createEvent = this.createEvent.bind(this);
     this.handleLocationChange = this.handleLocationChange.bind(this);
     this.handleNameChange = this.handleNameChange.bind(this);
     this.handleCountChange = this.handleCountChange.bind(this);
+    this.handleDateChange = this.handleDateChange.bind(this);
 
     this.state = {
       storageValue: 0,
       web3: null,
       eventName : "",
       eventLocation: "",
-      eventTicketCount:0,
+      eventTicketCount:10,
+      eventDate : new Date().getTime(),
+      tempDate : new Date().getTime(),
       events: [
         { title:'Making your first DApp with MetaMask & Truffle',},
         { title:'Making your first DApp with MetaMask & Truffle',},
@@ -49,8 +49,7 @@ class Create extends Component {
             location: l.location,
             date: l.eventDate.c[0].toString()
         });
-        console.log(l);
-        console.log(rows);
+
         this.setState({
             eventName : "",
             eventLocation: "",
@@ -60,6 +59,17 @@ class Create extends Component {
     });
   }
 
+  handleDateChange(e) {
+   
+    var d = Date.parse(e.target.value);
+    var e = new Date().getTime();
+    console.log(d, e);
+    if( d > e) {
+        this.setState({
+            eventDate: d
+        });
+    }
+  }
   handleLocationChange(e) {
     this.setState({ eventLocation: e.target.value });
   }
@@ -147,7 +157,7 @@ class Create extends Component {
     for (var i = 0; i < this.state.events.length; i++) {
         rows.push(
           <tr key={i}>
-            <td>{i}</td>
+            <td>{i+1}</td>
             <td>{this.state.events[i].name}</td>
             <td>{this.state.events[i].location}</td>
             <td>{this.state.events[i].date}</td>
@@ -164,28 +174,39 @@ class Create extends Component {
             <fieldset>
               <legend>Create Event</legend>
               <div className="pure-g">
-                <div className="pure-u-3-5">
+                <div className="pure-u-5-5">
                   <label data-for="event_name">Event Name</label>
-                  <input id="event_name" value={this.state.eventName} onChange={this.handleNameChange}  className="pure-u-23-24" type="text"/>
+                  <input id="event_name" value={this.state.eventName} onChange={this.handleNameChange}  className="pure-u-24-24" type="text"/>
                 </div>
                 <div className="pure-u-3-5">
                   <label data-for="event_location">Event Location</label>
-                  <input id="event_location" value={this.state.eventLocation} onChange={this.handleLocationChange} className="pure-u-23-24" type="text"/>
+                  <input id="event_location"  value={this.state.eventLocation} onChange={this.handleLocationChange} className="pure-u-23-24" type="text"/>
                 </div>
-                <div className="pure-u-1-5">
-                  <label data-for="event_name">Count</label>
-                  <input id="event_name" value={this.state.eventTicketCount} onChange={this.handleCountChange}  className="pure-u-23-24" type="number"/>
+                <div className="pure-u-2-5">
+                  <label data-for="event_date">Date</label>
+                  <input id="event_date"  onChange={this.handleDateChange}  className="pure-u-24-24" type="date"/>
+                </div>
+                
+                <div className="pure-u-2-5">
+                  <label data-for="event_num_tix">Tickets</label>
+                  <input id="event_num_tix"  className="pure-u-23-24" type="number"/>
+                </div>
+
+
+                <div className="pure-u-2-5">
+                  <label data-for="event_face_value">Face Value</label>
+                  <input id="event_face_value"  className="pure-u-23-24" type="number"/>
                 </div>
 
                 <div className="pure-u-1-5">
                   <label data-for="submit">&nbsp;</label>
-                  <button id="submit" type="button" className="pure-button pure-button-primary" onClick={this.createEvent}>Create</button>
+                  <button id="submit" type="button" className="pure-button pure-button-primary pure-u-23-24" onClick={this.createEvent}>Create</button>
                 </div>
               </div>
             </fieldset>
           </form>
 
-          <table className="pure-table">
+          <table className="pure-table stretch-table">
             <thead>
               <tr>
                 <th>&nbsp;</th>
