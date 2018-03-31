@@ -2,6 +2,13 @@ import React, { Component } from 'react'
 import EventFactory from '../build/contracts/EventFactory.json'
 import getWeb3 from './utils/getWeb3'
 
+const DEFAULT_FORM_STATE = {
+  eventName : "",
+  eventLocation: "New York",
+  eventTicketCount:10,
+  eventFaceValue: 100,
+  eventDate : new Date().getTime(),
+}
 
 class Create extends Component {
   constructor(props) {
@@ -12,21 +19,11 @@ class Create extends Component {
     this.handleCountChange = this.handleCountChange.bind(this);
     this.handleDateChange = this.handleDateChange.bind(this);
 
-    this.state = {
-      storageValue: 0,
-      web3: null,
-      eventName : "",
-      eventLocation: "",
-      eventTicketCount:10,
-      eventDate : new Date().getTime(),
-      tempDate : new Date().getTime(),
-      events: [
-        { title:'Making your first DApp with MetaMask & Truffle',},
-        { title:'Making your first DApp with MetaMask & Truffle',},
-        { title:'Making your first DApp with MetaMask & Truffle',},
-        { title:'Making your first DApp with MetaMask & Truffle',},
-      ]
-    }
+    this.state = DEFAULT_FORM_STATE;
+    this.state.storageValue = 0;
+    this.state.web3= null;
+    this.state.events = [];
+
   }
 
 
@@ -36,9 +33,9 @@ class Create extends Component {
     eventFactoryInstance.createNewEvent(
         this.state.eventName,
         this.state.eventLocation, 
-        123456,
+        this.state.eventDate,
         this.state.eventTicketCount,
-        50,
+        this.state.eventFaceValue,
         { from: this.state.account }
     ).then((result) => {
         console.log(result);
@@ -47,13 +44,9 @@ class Create extends Component {
         rows.push({
             name : l.name,
             location: l.location,
-            date: l.eventDate.c[0].toString()
+            date: new Date(l.eventDate.c[0]).toISOString()        
         });
-
         this.setState({
-            eventName : "",
-            eventLocation: "",
-            eventTicketCount : 0,
             events: rows
         })
     });
@@ -72,6 +65,7 @@ class Create extends Component {
   }
   handleLocationChange(e) {
     this.setState({ eventLocation: e.target.value });
+    console.log(this.state);
   }
 
   handleNameChange(e) {
@@ -82,6 +76,9 @@ class Create extends Component {
     this.setState({ eventTicketCount: parseInt(e.target.value) });
   }
 
+  handleFaceChange(e) {
+    this.setState({ eventFaceValue: parseInt(e.target.value) });
+  }
 
   componentWillMount() {
     // Get network provider and web3 instance.
@@ -143,8 +140,8 @@ class Create extends Component {
             events: results.map((r) => { 
             return {
                 name : r[0],
-                location: r[1],
-                date: r[2].c[0].toString()
+                location: r[1],                
+                date: new Date(r[2].c[0]).toISOString()
             };
         }) })
       })
@@ -160,7 +157,7 @@ class Create extends Component {
             <td>{i+1}</td>
             <td>{this.state.events[i].name}</td>
             <td>{this.state.events[i].location}</td>
-            <td>{this.state.events[i].date}</td>
+            <td>{new Date(this.state.events[i].date).toISOString().substr(0,10)}</td>
             <td>
               <button className="pure-button pure-button-primary">Edit</button>
             </td>
@@ -176,26 +173,35 @@ class Create extends Component {
               <div className="pure-g">
                 <div className="pure-u-5-5">
                   <label data-for="event_name">Event Name</label>
-                  <input id="event_name" value={this.state.eventName} onChange={this.handleNameChange}  className="pure-u-24-24" type="text"/>
+                  <input id="event_name"              
+                    onChange={this.handleNameChange}  className="pure-u-24-24" type="text"/>
                 </div>
                 <div className="pure-u-3-5">
                   <label data-for="event_location">Event Location</label>
-                  <input id="event_location"  value={this.state.eventLocation} onChange={this.handleLocationChange} className="pure-u-23-24" type="text"/>
+                  <input id="event_location"  
+                  defaultValue={this.state.eventLocation}
+                  onChange={this.handleLocationChange} className="pure-u-23-24" type="text"/>
                 </div>
                 <div className="pure-u-2-5">
                   <label data-for="event_date">Date</label>
-                  <input id="event_date"  onChange={this.handleDateChange}  className="pure-u-24-24" type="date"/>
+                  <input id="event_date"  onChange={this.handleDateChange} 
+                    defaultValue={new Date(this.state.eventDate).toISOString().substr(0,10)}
+                  className="pure-u-24-24" type="date"/>
                 </div>
                 
                 <div className="pure-u-2-5">
                   <label data-for="event_num_tix">Tickets</label>
-                  <input id="event_num_tix"  className="pure-u-23-24" type="number"/>
+                  <input id="event_num_tix"  className="pure-u-23-24" 
+                  defaultValue={this.state.eventTicketCount}
+                  type="number"/>
                 </div>
 
 
                 <div className="pure-u-2-5">
                   <label data-for="event_face_value">Face Value</label>
-                  <input id="event_face_value"  className="pure-u-23-24" type="number"/>
+                  <input id="event_face_value"  className="pure-u-23-24" 
+                  defaultValue={this.state.eventFaceValue}
+                  type="number"/>
                 </div>
 
                 <div className="pure-u-1-5">
