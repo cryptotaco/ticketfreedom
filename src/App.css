@@ -1,5 +1,5 @@
 /* PAGE */
-
+/*
 body,
 .pure-g [class*=pure-u] {
   font-family: 'Open Sans', sans-serif;
@@ -34,8 +34,7 @@ code {
   border-color: #0c1a2b;
 }
 
-/* NAVBAR */
-
+*/
 .navbar {
   position: fixed;
   padding: 5px;
@@ -65,4 +64,12 @@ code {
 .navbar .uport-logo {
   height: 16px;
   margin-right: 10px;
+}
+.content {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+#create_form {
+  margin: 30px;
 }
