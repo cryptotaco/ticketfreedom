@@ -19,6 +19,7 @@ contract EventFactory {
     event NewEventCreated(address _creator, string _name, uint _eventDate, string _location, uint _numTickets, uint _faceValue);
     event TicketPurchased(address _buyer, uint _ticketid, string _name, uint _eventid);
     event TicketListedForSale(address _seller, uint _ticketId, uint _askPrice);
+    event GetEventForId(uint id);
     event CreatorIds(uint[] _ids);
     
     function EventFactory() public {
@@ -39,6 +40,7 @@ contract EventFactory {
     }
 
     function getEventForId(uint _eventId) public view returns (string, string, uint256, address , uint) {
+    	GetEventForId(_eventId);
         Event memory ievent = events[_eventId-1];
         
         return (ievent.name, ievent.location, ievent.event_date, ievent.tickets_address, _eventId);
@@ -48,14 +50,14 @@ contract EventFactory {
         uint[] ids;
         uint[] price;
         for (uint i = 0; i < events.length; i++) {
-            TicketFactory ticketFactory = TicketFactory(events[i].tickets_address);
-            bool ticketAvailable;
+            //TicketFactory ticketFactory = TicketFactory(events[i].tickets_address);
+            bool ticketAvailable = true;
             uint16 lowestAskingPrice;
             uint ticketId;
-            (ticketAvailable, lowestAskingPrice, ticketId) = ticketFactory.lowestAskingPrice();
+           // (ticketAvailable, lowestAskingPrice, ticketId) = ticketFactory.lowestAskingPrice();
             if (ticketAvailable) {
                 ids.push(i);
-                price.push(lowestAskingPrice);
+                price.push(10);
             }
         }
         return (ids, price);
@@ -64,10 +66,11 @@ contract EventFactory {
     function getMyEvents() public view returns (uint[]) {
         uint[] ids;
         for (uint i = 0; i < events.length; i++) {
-            TicketFactory ticketFactory = TicketFactory(events[i].tickets_address);
-            uint ticketBalance = ticketFactory.balanceOf(msg.sender);
+           // TicketFactory ticketFactory = TicketFactory(events[i].tickets_address);
+            //uint ticketBalance = ticketFactory.balanceOf(msg.sender);
+            uint ticketBalance = 0;
             if (ticketBalance > 0) {
-                ids.push(i);
+                ids.push(i+1);
             }
         }
         return ids;

@@ -53,6 +53,7 @@ class Tickets extends Component {
   buyTicket(e,eventId, price) {
     var ticketInstance;
     this.eventFactoryInstance.getEventForId(eventId).then((ev) => {
+
       var ticketAddress = ev[3];
       this.state.ticketFactoryContract.at(ticketAddress).then((instance) => {
         ticketInstance = instance;
@@ -98,24 +99,40 @@ class Tickets extends Component {
       var eventIdsToEvents = {}
       eventFactory.deployed().then((instance) => {
         eventFactoryInstance = instance
-
+        eventFactoryInstance.GetEventForId().watch((err, res) => {
+          console.log("GET EVENT FOR ID");
+          console.log(res);
+          console.log(err);
+        });
         // Stores a given value, 5 by default.
+        console.log("here");
          return eventFactoryInstance.getEventsWithAvailableTickets.call({from: this.state.account});
       }).then((result) => {
         // result = [ uint[] ids, uint16[] price ] 
+        console.log("hwew");
         var promises = [];
-        for(var i = 0; i < result[0].length; ++i )
-        {
-          eventIdsToEvents[result[0][i]] = { "event" : {}, "lowestPrice" : result[1][i]};
-          promises.push(eventFactoryInstance.getEventForId(result[0][i]));
+        console.log(result);
+        for(var i = 0; i < result.length; ++i )
+        { 
+  
+          var id = parseInt(result[i][0])+1;
+          console.log("id");
+          console.log(id);
+          eventIdsToEvents[id] = { "event" : {}, "lowestPrice" : result[i][1]};
+          promises.push(eventFactoryInstance.getEventForId(id));
         }
         return Promise.all(promises);
       }).then((events) => {
         // Update state with the result.
         var eventsWithTickets = [];
+        console.log(events);
+
         events.forEach((r) => {
-          var id = r[4];
-          if(eventIdsToEvents[id]) {
+          var id = parseInt(r[4].c[0].toString());
+          console.log(id);
+          console.log(eventIdsToEvents);
+          console.log(eventIdsToEvents[id]);
+          if(eventIdsToEvents.hasOwnProperty(id)) {
             eventsWithTickets.push({
               id: id,
               eventName: r[0],
@@ -125,6 +142,10 @@ class Tickets extends Component {
               lowestPrice: eventIdsToEvents[id].lowestPrice
             });
           }
+          console.log(eventsWithTickets);
+          this.setState({
+            availableTickets: eventsWithTickets
+          })
         });
       }).then(()=> {
         // Get all events for which i currently have tickets 
@@ -149,11 +170,11 @@ class Tickets extends Component {
          
 
       }).then(() => {
+        console.log(eventsWithTickets);
         return this.setState({ 
           ticketFactoryContract: ticketFactory, 
           eventFactoryInstance: eventFactoryInstance,
           account: accounts[0],
-          availableTickets: eventsWithTickets,
           ownedTickets: eventsIHaveTicketsTo
         });
       });
