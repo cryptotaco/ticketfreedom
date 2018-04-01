@@ -39,7 +39,7 @@ contract EventFactory {
     }
 
     function getEventForId(uint _eventId) public view returns (string, string, uint256, address , uint) {
-        Event memory ievent = events[_eventId];
+        Event memory ievent = events[_eventId-1];
         
         return (ievent.name, ievent.location, ievent.event_date, ievent.tickets_address, _eventId);
     }
